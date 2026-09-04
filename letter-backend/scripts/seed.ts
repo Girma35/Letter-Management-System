@@ -130,6 +130,7 @@ async function seedDocument(args: {
   dueDate?: Date | string;
   originatingDepartment?: string;
   assignedEmployee?: string;
+  assignedEmployeeId?: number;
   responseRequired?: boolean;
 }) {
   const { rows } = await pool.query('SELECT id FROM documents WHERE document_number = $1', [
@@ -145,10 +146,10 @@ async function seedDocument(args: {
         storage_path, tags, version, is_new,
         letter_type, sender, sender_organization, recipient, recipient_organization,
         priority, date_received, date_sent, due_date, originating_department,
-        assigned_employee, response_required)
+        assigned_employee, assigned_employee_id, response_required)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'INTERNAL',$10,$11,'application/pdf',$12,
              ARRAY['demo'],'v1.0',true,
-             $13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+             $13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
      RETURNING id`,
     [
       args.documentNumber, args.title, args.description, args.category,
@@ -165,6 +166,7 @@ async function seedDocument(args: {
       args.dueDate || null,
       args.originatingDepartment || null,
       args.assignedEmployee || null,
+      args.assignedEmployeeId || null,
       args.responseRequired || false,
     ]
   );
@@ -238,7 +240,8 @@ async function seed() {
     priority: 'HIGH',
     dateReceived: new Date('2026-08-20T09:30:00'),
     dueDate: new Date('2026-09-05T00:00:00'),
-    assignedEmployee: 'Endrias Eshetu',
+    assignedEmployee: 'Endrias Eshetu (Employee)',
+    assignedEmployeeId: employeeId,
     responseRequired: true,
   });
 
