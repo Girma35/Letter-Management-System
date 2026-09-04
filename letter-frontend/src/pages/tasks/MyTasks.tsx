@@ -343,9 +343,12 @@ export const MyTasks: React.FC = () => {
       return (
         l.status === "RECEIVED" ||
         l.status === "REGISTERED" ||
-        l.status === "PENDING_REVIEW"
+        l.status === "PENDING_REVIEW" ||
+        l.status === "DRAFT" ||
+        l.status === "CHANGES_REQUESTED"
       );
-    if (activeTab === "IN_PROGRESS") return l.status === "IN_PROGRESS";
+    if (activeTab === "IN_PROGRESS")
+      return l.status === "IN_PROGRESS" || l.status === "DRAFT";
     if (activeTab === "OVERDUE")
       return l.dueDate && new Date(l.dueDate) < new Date();
     if (activeTab === "COMPLETED")

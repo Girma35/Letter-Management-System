@@ -47,9 +47,10 @@ function serializeNotification(row: any) {
     documentId: row.document_id != null ? String(row.document_id) : undefined,
     documentTitle: row.document_title ?? undefined,
     letterId: row.document_id != null ? String(row.document_id) : undefined,
+    letterTitle: row.document_title ?? undefined,
     referenceNumber: row.reference_number ?? undefined,
     entityType: row.entity_type || undefined,
-    entityId: row.entity_id != null ? String(row.entity_id) : undefined,
+    entityId: row.entity_id != null ? String(row.entity_id) : (row.document_id != null ? String(row.document_id) : undefined),
     taskId: row.task_id != null ? String(row.task_id) : undefined,
 
     createdAt: formatDisplayDate(row.created_at),
@@ -70,6 +71,7 @@ router.get(
 
     const {
       unread,
+      read,
       type,
       letterId,
       taskId,
@@ -82,9 +84,9 @@ router.get(
     const params: unknown[] = [user.id];
 
     // Read/unread filter (Section 27)
-    if (unread === 'true') {
+    if (unread === 'true' || read === 'unread') {
       where.push(`n.is_read = false`);
-    } else if (unread === 'false') {
+    } else if (unread === 'false' || read === 'read') {
       where.push(`n.is_read = true`);
     }
 

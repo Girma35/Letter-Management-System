@@ -993,7 +993,11 @@ export const letterService = {
   async getMyTasks(): Promise<LetterItem[]> {
     const res = await this.getLetters();
     return res.data.filter(
-      (l) => l.assignedEmployee || l.status === "IN_PROGRESS",
+      (l) =>
+        l.assignedEmployee ||
+        l.status === "IN_PROGRESS" ||
+        l.status === "DRAFT" ||
+        l.status === "CHANGES_REQUESTED",
     );
   },
 
