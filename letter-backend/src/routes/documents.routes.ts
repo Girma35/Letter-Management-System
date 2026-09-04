@@ -51,10 +51,12 @@ function addEmployeeScope(
   alias = "d",
 ) {
   if (user?.role !== "EMPLOYEE") return;
+  const idIdx = params.length + 1;
+  const nameIdx = params.length + 2;
   where.push(
-    `(${alias}.author_id = $${params.length + 1} OR ${alias}.assigned_employee_id = $${params.length + 1} OR LOWER(TRIM(${alias}.assigned_employee)) = LOWER(TRIM($${params.length + 1}::text)))`,
+    `(${alias}.author_id = $${idIdx} OR ${alias}.assigned_employee_id = $${idIdx} OR LOWER(TRIM(${alias}.assigned_employee)) = LOWER(TRIM($${nameIdx}::text)) OR $${nameIdx}::text ILIKE '%' || LOWER(TRIM(NULLIF(${alias}.assigned_employee, ''))) || '%' OR LOWER(TRIM(${alias}.assigned_employee)) ILIKE '%' || LOWER(TRIM(NULLIF($${nameIdx}::text, ''))) || '%')`,
   );
-  params.push(user.id);
+  params.push(user.id, user.full_name || "");
 }
 
 async function assertEmployeeDocumentAccess(
@@ -65,8 +67,8 @@ async function assertEmployeeDocumentAccess(
   const { rows } = await query(
     `SELECT id FROM documents
       WHERE id = $1
-        AND (author_id = $2 OR assigned_employee_id = $2 OR LOWER(TRIM(assigned_employee)) = LOWER(TRIM($3::text)))`,
-    [id, user.id, user.full_name],
+        AND (author_id = $2 OR assigned_employee_id = $2 OR LOWER(TRIM(assigned_employee)) = LOWER(TRIM($3::text)) OR $3::text ILIKE '%' || LOWER(TRIM(NULLIF(assigned_employee, ''))) || '%' OR LOWER(TRIM(assigned_employee)) ILIKE '%' || LOWER(TRIM(NULLIF($3::text, ''))) || '%')`,
+    [id, user.id, user.full_name || ""],
   );
   if (rows.length === 0) throw ApiError.notFound("Document not found.");
 }
