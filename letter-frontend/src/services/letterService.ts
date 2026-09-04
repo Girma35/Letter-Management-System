@@ -597,6 +597,7 @@ export const letterService = {
 
   /**
    * Get single letter by ID
+   */
   async getLetterById(id: string): Promise<LetterItem> {
     try {
       const cleanId = id.startsWith("ltr-") ? id.replace(/^ltr-0*/, "") : id;
