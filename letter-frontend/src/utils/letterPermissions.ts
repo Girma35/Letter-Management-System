@@ -215,7 +215,7 @@ export function getLetterPermissions(
       canViewTracking: true,
       canViewAudit: false,
 
-      canRegisterLetter: false,
+      canRegisterLetter: true,
       canEditRegistrationMetadata: !!(
         letter &&
         (st === "REGISTERED" || st === "RECEIVED") &&
@@ -224,7 +224,11 @@ export function getLetterPermissions(
       canUploadScan: !!(letter && dir === "INCOMING"),
       canClassifyLetter: !!(letter && dir === "INCOMING"),
 
-      canRouteLetter: false,
+      canRouteLetter: !!(
+        letter &&
+        st === "REGISTERED" &&
+        dir === "INCOMING"
+      ),
       canAssignLetter: false,
       canApproveLetter: false,
       canRejectLetter: false,

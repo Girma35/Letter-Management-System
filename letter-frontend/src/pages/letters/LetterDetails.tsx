@@ -149,6 +149,7 @@ const AttachmentTimelineItem: React.FC<{
 interface ActionPanelProps {
   role: string | undefined;
   letter: LetterItem;
+  onRegister?: () => void;
   onRoute: () => void;
   onAssign: () => void;
   onApprove: () => void;
@@ -169,6 +170,7 @@ interface ActionPanelProps {
 const RoleActionPanel: React.FC<ActionPanelProps> = ({
   role,
   letter,
+  onRegister,
   onRoute,
   onAssign,
   onApprove,
@@ -362,7 +364,7 @@ const RoleActionPanel: React.FC<ActionPanelProps> = ({
               variant="primary"
               size="sm"
               className="w-full"
-              onClick={onRoute}
+              onClick={onRegister}
             >
               <svg
                 className="w-4 h-4 mr-1.5"
@@ -1309,6 +1311,7 @@ export const LetterDetails: React.FC = () => {
           <RoleActionPanel
             role={role}
             letter={letter}
+            onRegister={() => navigate("/letters/new?direction=INCOMING")}
             onRoute={() => setIsRoutingOpen(true)}
             onAssign={() => setIsAssignmentOpen(true)}
             onApprove={handleApprove}

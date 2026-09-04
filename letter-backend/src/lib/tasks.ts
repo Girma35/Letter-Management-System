@@ -148,9 +148,9 @@ export async function validateRouteIncoming(
   _userId: number,
   userRole: string,
 ): Promise<{ valid: boolean; error?: string }> {
-  // Check user is ADMIN
-  if (userRole !== 'ADMIN') {
-    return { valid: false, error: 'Only administrators can route incoming letters.' };
+  // ADMIN routes letters to departments; REGISTRY_OFFICER routes REGISTERED letters to admin
+  if (userRole !== 'ADMIN' && userRole !== 'REGISTRY_OFFICER') {
+    return { valid: false, error: 'Only administrators or registry officers can route incoming letters.' };
   }
 
   // Check letter exists and is in correct state
@@ -166,8 +166,15 @@ export async function validateRouteIncoming(
   if (letter.letter_type !== 'INCOMING') {
     return { valid: false, error: 'This endpoint is only for incoming letters.' };
   }
-  if (letter.status !== 'REGISTERED') {
-    return { valid: false, error: `Cannot route letter in '${letter.status}' status. Expected 'REGISTERED'.` };
+
+  // REGISTRY_OFFICER can only route letters in REGISTERED status (initial routing to admin)
+  if (userRole === 'REGISTRY_OFFICER' && letter.status !== 'REGISTERED') {
+    return { valid: false, error: `Registry officer can only route letters in 'REGISTERED' status. Current status: '${letter.status}'.` };
+  }
+
+  // ADMIN can route REGISTERED letters (just arrived) or RECEIVED letters (already routed by registry)
+  if (userRole === 'ADMIN' && letter.status !== 'REGISTERED' && letter.status !== 'RECEIVED') {
+    return { valid: false, error: `Cannot route letter in '${letter.status}' status. Expected 'REGISTERED' or 'RECEIVED'.` };
   }
 
   return { valid: true };

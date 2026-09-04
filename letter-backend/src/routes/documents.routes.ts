@@ -308,7 +308,10 @@ router.post(
     // Initial status depending on letter type
     let initialStatus = "DRAFT";
     if (letterType === "INCOMING") {
-      initialStatus = "RECEIVED";
+      // Incoming letters start as REGISTERED — the registry officer registers them
+      // then routes to admin (RECEIVED), then admin routes to department (RECEIVED stays
+      // until manager assigns to officer who moves it to IN_PROGRESS).
+      initialStatus = "REGISTERED";
     }
 
     let departmentId: number | null = null;
@@ -546,7 +549,9 @@ router.post(
         deptName = (deptRes.rows[0] as { name: string }).name;
       }
 
-      const newStatus = "ASSIGNED";
+      // After admin routes, status becomes RECEIVED so the department manager
+      // can see it as a new letter awaiting officer assignment.
+      const newStatus = "RECEIVED";
       await client.query(
         `UPDATE documents
             SET department_id = COALESCE($2, department_id),
@@ -643,7 +648,9 @@ router.post(
       }
     }
 
-    const newStatus = "ASSIGNED";
+    // After manager assigns to officer, move to IN_PROGRESS so the employee
+    // sees their work actions (Submit for Review, Respond, Mark Complete).
+    const newStatus = "IN_PROGRESS";
     await query(
       `UPDATE documents
             SET assigned_employee = COALESCE($2, assigned_employee),
@@ -1114,8 +1121,11 @@ router.post(
     if (!Number.isFinite(id)) throw ApiError.badRequest("Invalid document id.");
     await assertEmployeeDocumentAccess(id, req.user);
 
+    // Employee submits draft for their department manager's review first (PENDING_REVIEW).
+    // The manager then approves -> APPROVED, and finally admin registers the outgoing
+    // letter number before registry dispatches it.
     const { rows } = await query(
-      `UPDATE documents SET status = 'PENDING_APPROVAL', updated_at = now() WHERE id = $1 RETURNING *`,
+      `UPDATE documents SET status = 'PENDING_REVIEW', updated_at = now() WHERE id = $1 RETURNING *`,
       [id],
     );
     if (rows.length === 0) throw ApiError.notFound("Document not found.");
@@ -1129,7 +1139,7 @@ router.post(
           priority, status, submitted_at, page_count)
        VALUES ($1,$2,$3,$4,$5,'NORMAL','PENDING',now(),NULL)
        ON CONFLICT (document_id) DO UPDATE
-         SET status = 'PENDING', submitted_at = now(), reviewed_at = NULL, comment = NULL
+         SET status = 'PENDING', submitted_at = now(), reviewed_at = NULL, comment = NULL, priority = 'NORMAL'
        RETURNING id`,
       [
         id,
@@ -1149,10 +1159,10 @@ router.post(
     await logAudit({
       userId: user.id,
       userName: user.full_name,
-      action: "SUBMIT_FOR_APPROVAL",
+      action: "SUBMIT_FOR_REVIEW",
       entityId: id,
       previousStatus: doc.status,
-      newStatus: "PENDING_APPROVAL",
+      newStatus: "PENDING_REVIEW",
     });
 
     // Notify department manager of submission (Section 11)
