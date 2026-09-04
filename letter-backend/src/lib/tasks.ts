@@ -172,9 +172,9 @@ export async function validateRouteIncoming(
     return { valid: false, error: `Registry officer can only route letters in 'REGISTERED' status. Current status: '${letter.status}'.` };
   }
 
-  // ADMIN can route REGISTERED letters (just arrived) or RECEIVED letters (already routed by registry)
-  if (userRole === 'ADMIN' && letter.status !== 'REGISTERED' && letter.status !== 'RECEIVED') {
-    return { valid: false, error: `Cannot route letter in '${letter.status}' status. Expected 'REGISTERED' or 'RECEIVED'.` };
+  // ADMIN can route REGISTERED letters (just arrived), RECEIVED letters, or APPROVED internal/incoming letters
+  if (userRole === 'ADMIN' && letter.status !== 'REGISTERED' && letter.status !== 'RECEIVED' && letter.status !== 'APPROVED') {
+    return { valid: false, error: `Cannot route letter in '${letter.status}' status. Expected 'REGISTERED', 'RECEIVED', or 'APPROVED'.` };
   }
 
   return { valid: true };

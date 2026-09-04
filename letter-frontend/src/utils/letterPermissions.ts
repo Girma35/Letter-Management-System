@@ -142,7 +142,7 @@ export function getLetterPermissions(
 
       canRouteLetter: !!(
         letter &&
-        (st === "REGISTERED" || st === "RECEIVED") &&
+        (st === "REGISTERED" || st === "RECEIVED" || st === "APPROVED") &&
         (dir === "INCOMING" || dir === "INTERNAL")
       ),
       canAssignLetter: false,
