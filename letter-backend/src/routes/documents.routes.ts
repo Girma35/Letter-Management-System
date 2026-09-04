@@ -418,14 +418,29 @@ router.post(
   }),
 );
 
+async function parseDocId(paramId: string): Promise<number> {
+  let cleaned = (paramId || "").trim();
+  if (cleaned.startsWith("ltr-")) {
+    cleaned = cleaned.replace(/^ltr-0*/, "");
+  }
+  const num = Number(cleaned);
+  if (Number.isFinite(num) && num > 0) return num;
+
+  const { rows } = await query(
+    `SELECT id FROM documents WHERE LOWER(document_number) = LOWER($1) LIMIT 1`,
+    [paramId.trim()],
+  );
+  if (rows.length > 0) return (rows[0] as { id: number }).id;
+  throw ApiError.badRequest("Invalid document id.");
+}
+
 /* ─── GET /documents/:id — detail with versions ────────── */
 
 router.get(
   "/:id",
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res) => {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id)) throw ApiError.badRequest("Invalid document id.");
+    const id = await parseDocId(req.params.id);
     await assertEmployeeDocumentAccess(id, req.user);
 
     const { rows } = await query(`${DOC_SELECT} WHERE d.id = $1`, [id]);

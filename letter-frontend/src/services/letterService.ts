@@ -597,16 +597,21 @@ export const letterService = {
 
   /**
    * Get single letter by ID
-   */
   async getLetterById(id: string): Promise<LetterItem> {
     try {
-      const response = await api.get<LetterItem>(`/letters/${id}`);
+      const cleanId = id.startsWith("ltr-") ? id.replace(/^ltr-0*/, "") : id;
+      const response = await api.get<LetterItem>(`/letters/${cleanId}`);
       return response.data;
     } catch (error: any) {
-      if (error.code === "ERR_NETWORK" || !error.response) {
-        const found = inMemoryLetters.find((l) => l.id === id);
-        if (found) return found;
-      }
+      const found = inMemoryLetters.find(
+        (l) =>
+          l.id === id ||
+          l.id === `ltr-${id}` ||
+          l.id.endsWith(id) ||
+          l.referenceNumber === id ||
+          l.registrationNumber === id,
+      );
+      if (found) return found;
       throw error;
     }
   },
