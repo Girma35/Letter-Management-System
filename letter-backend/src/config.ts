@@ -11,7 +11,9 @@ export const config = {
 
   // PostgreSQL
   databaseUrl: process.env.DATABASE_URL || '',
-  dbSsl: process.env.DB_SSL === 'true',
+  dbSsl: process.env.DB_SSL !== undefined
+    ? process.env.DB_SSL === 'true'
+    : (Boolean(process.env.DATABASE_URL) && !process.env.DATABASE_URL?.includes('localhost') && !process.env.DATABASE_URL?.includes('127.0.0.1')),
 
   // JWT auth
   jwtSecret: process.env.JWT_SECRET || 'sita_production_jwt_secret_key_2026_fallback',
