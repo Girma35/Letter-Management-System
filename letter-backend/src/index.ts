@@ -24,17 +24,20 @@ const corsOptions: cors.CorsOptions = {
     // Allow requests with no origin (e.g. server-to-server, mobile apps, curl)
     if (!origin) return callback(null, true);
 
-    if (
+    const isAllowed =
       allowedOrigins.includes('*') ||
       allowedOrigins.includes(origin) ||
+      // Production frontend (Vercel) — keep explicitly so it works even if the
+      // platform domain rules ever change.
+      origin === 'https://letter-management-system-jade.vercel.app' ||
       origin.endsWith('.vercel.app') ||
       origin.endsWith('.railway.app') ||
-      origin.includes('localhost')
-    ) {
-      return callback(null, true);
-    }
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
-    return callback(null, true);
+    // Deny unknown origins. Never fall back to `*` here: credentials are
+    // enabled, and browsers reject `Access-Control-Allow-Origin: *` with
+    // `Access-Control-Allow-Credentials: true`.
+    return callback(null, isAllowed);
   },
   credentials: true,
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
